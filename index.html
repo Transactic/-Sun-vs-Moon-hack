@@ -5,31 +5,31 @@
     <script>
         let voteCount = 0; // Counter for votes sent
 
-        async function sendVote() {
-            const url = "https://neal.fun/sun-vs-moon/"; // Target URL
-            const payload = { vote: "sun" }; // Payload to send
-            const headers = {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            };
+async function sendVote(voteType) {
+    const url = "https://neal.fun/sun-vs-moon/"; // Target URL
+    const payload = { vote: voteType }; // Payload to send
+    const headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    };
 
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: headers,
-                    body: JSON.stringify(payload)
-                });
-                if (response.ok) {
-                    voteCount++; // Increment the vote count
-                    document.getElementById("voteCounter").value = voteCount; // Update text box
-                    console.log(`Vote ${voteCount} sent successfully!`);
-                } else {
-                    console.error("Failed to send vote:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error sending vote:", error);
-            }
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(payload)
+        });
+        if (response.ok) {
+            console.log(`Vote for "${voteType}" sent successfully!`);
+        } else {
+            console.error(`Error: ${response.status} ${response.statusText}`);
+            const responseBody = await response.text();
+            console.error("Response body:", responseBody);
         }
+    } catch (error) {
+        console.error("Error sending vote:", error);
+    }
+}
     </script>
 </head>
 <body>
