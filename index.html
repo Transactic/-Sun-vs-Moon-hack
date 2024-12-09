@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Automated Voting</title>
+    <script>
+        let voteCount = 0; // Counter for votes sent
+
+        async function sendVote() {
+            const url = "https://neal.fun/sun-vs-moon/"; // Target URL
+            const payload = { vote: "sun" }; // Payload to send
+            const headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+                if (response.ok) {
+                    voteCount++; // Increment the vote count
+                    document.getElementById("voteCounter").value = voteCount; // Update text box
+                    console.log(`Vote ${voteCount} sent successfully!`);
+                } else {
+                    console.error("Failed to send vote:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error sending vote:", error);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Automated Voting Tool</h1>
+    <button onclick="sendVote()">Send Vote</button>
+    <br><br>
+    <label for="voteCounter">Votes Sent:</label>
+    <input type="text" id="voteCounter" value="0" readonly>
+</body>
+</html>
