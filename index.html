@@ -1,42 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Automated Voting</title>
+    <title>Automated Voting Tool</title>
     <script>
-        let voteCount = 0; // Counter for votes sent
+        let sunVoteCount = 0; // Counter for "sun" votes
+        let moonVoteCount = 0; // Counter for "moon" votes
 
-async function sendVote(voteType) {
-    const url = "https://neal.fun/sun-vs-moon/"; // Target URL
-    const payload = { vote: voteType }; // Payload to send
-    const headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    };
+        async function sendVote(voteType) {
+            const url = "https://neal.fun/sun-vs-moon/"; // Target URL
+            const payload = { vote: voteType }; // Payload to send
+            const headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            };
 
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(payload)
-        });
-        if (response.ok) {
-            console.log(`Vote for "${voteType}" sent successfully!`);
-        } else {
-            console.error(`Error: ${response.status} ${response.statusText}`);
-            const responseBody = await response.text();
-            console.error("Response body:", responseBody);
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    if (voteType === "sun") {
+                        sunVoteCount++; // Increment the "sun" vote count
+                        document.getElementById("sunVoteCounter").value = sunVoteCount; // Update sun counter
+                    } else if (voteType === "moon") {
+                        moonVoteCount++; // Increment the "moon" vote count
+                        document.getElementById("moonVoteCounter").value = moonVoteCount; // Update moon counter
+                    }
+                    console.log(`Vote for "${voteType}" sent successfully!`);
+                } else {
+                    console.error(`Error: ${response.status} ${response.statusText}`);
+                    const responseBody = await response.text();
+                    console.error("Response body:", responseBody);
+                }
+            } catch (error) {
+                console.error(`Error sending vote for "${voteType}":`, error);
+            }
         }
-    } catch (error) {
-        console.error("Error sending vote:", error);
-    }
-}
     </script>
 </head>
 <body>
     <h1>Automated Voting Tool</h1>
-    <button onclick="sendVote()">Send Vote</button>
-    <br><br>
-    <label for="voteCounter">Votes Sent:</label>
-    <input type="text" id="voteCounter" value="0" readonly>
+
+    <div>
+        <button onclick="sendVote('sun')">Vote for Sun</button>
+        <label for="sunVoteCounter">Sun Votes Sent:</label>
+        <input type="text" id="sunVoteCounter" value="0" readonly>
+    </div>
+    <br>
+    <div>
+        <button onclick="sendVote('moon')">Vote for Moon</button>
+        <label for="moonVoteCounter">Moon Votes Sent:</label>
+        <input type="text" id="moonVoteCounter" value="0" readonly>
+    </div>
 </body>
 </html>
