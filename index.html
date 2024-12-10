@@ -1,59 +1,249 @@
+
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Automated Voting Tool</title>
-    <script>
-        let sunVoteCount = 0; // Counter for "sun" votes
-        let moonVoteCount = 0; // Counter for "moon" votes
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Follow Sender</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        async function sendVote(voteType) {
-            const url = "https://neal.fun/sun-vs-moon/"; // Target URL
-            const payload = { vote: voteType }; // Payload to send
-            const headers = {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            };
+        .panel {
+            background-color: #3a3a3a;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+        }
 
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: headers,
-                    body: JSON.stringify(payload)
-                });
+        .panel h1 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 10px;
+        }
 
-                if (response.ok) {
-                    if (voteType === "sun") {
-                        sunVoteCount++; // Increment the "sun" vote count
-                        document.getElementById("sunVoteCounter").value = sunVoteCount; // Update sun counter
-                    } else if (voteType === "moon") {
-                        moonVoteCount++; // Increment the "moon" vote count
-                        document.getElementById("moonVoteCounter").value = moonVoteCount; // Update moon counter
-                    }
-                    console.log(`Vote for "${voteType}" sent successfully!`);
-                } else {
-                    console.error(`Error: ${response.status} ${response.statusText}`);
-                    const responseBody = await response.text();
-                    console.error("Response body:", responseBody);
-                }
-            } catch (error) {
-                console.error(`Error sending vote for "${voteType}":`, error);
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .button-container button {
+            background-color: #9146ff; /* Twitch purple */
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container button:hover {
+            background-color: #772ce8; /* Darker purple for hover effect */
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 1rem;
+            color: #333;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #9146ff;
+        }
+
+        button {
+            background-color: #9146ff;
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #772ce8;
+        }
+
+        #cooldownMessage {
+            text-align: center;
+            font-size: 1rem;
+            color: #d9534f;
+        }
+
+        #cooldownMessage span {
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .panel h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            button {
+                font-size: 1rem;
+            }
+
+            .button-container button {
+                font-size: 1rem;
+                padding: 8px 15px;
             }
         }
-    </script>
+    </style>
 </head>
 <body>
-    <h1>Automated Voting Tool</h1>
+    <div class="panel">
+        <h1>Twitch Tools</h1>
+        <div class="button-container">
+            <button onclick="showFollowersForm()">Twitch Followers</button>
+            <button onclick="showViewsForm()">Instagram</button>
+            <button onclick="showOtherFeature()">Tiktok</button>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Twitch Follow Sender</h1>
+        <form id="followForm">
+            <label for="username">Twitch Username:</label>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <label for="follows">Number of Follows (max 50):</label>
+            <input type="number" id="follows" name="follows" min="1" max="5000000" required>
+            <br>
+            <button type="submit" id="submitButton">Submit</button>
+        </form>
+        <div id="cooldownMessage" style="display: none;">
+            Please wait <span id="cooldownTimer"></span> before trying again.
+        </div>
+    </div>
 
-    <div>
-        <button onclick="sendVote('sun')">Vote for Sun</button>
-        <label for="sunVoteCounter">Sun Votes Sent:</label>
-        <input type="text" id="sunVoteCounter" value="0" readonly>
-    </div>
-    <br>
-    <div>
-        <button onclick="sendVote('moon')">Vote for Moon</button>
-        <label for="moonVoteCounter">Moon Votes Sent:</label>
-        <input type="text" id="moonVoteCounter" value="0" readonly>
-    </div>
+    <script>
+        const cooldownRemaining = 0;
+        const form = document.getElementById('followForm');
+        const cooldownMessage = document.getElementById('cooldownMessage');
+        const cooldownTimer = document.getElementById('cooldownTimer');
+        const submitButton = document.getElementById('submitButton');
+
+        if (cooldownRemaining > 0) {
+            disableForm();
+            startCooldown(cooldownRemaining);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const follows = document.getElementById('follows').value;
+
+            disableForm();
+         
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+
+                Toast.fire({
+                    icon: "info",
+                    title: "This can take some time"
+                });
+                startCooldown(300);
+
+            const response = await fetch('/send_follows', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, follows })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Toast.fire({
+                    icon: "success",
+                    title: result.message
+                });
+                startCooldown(300);
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: result.message
+                });
+                enableForm();
+            }
+        });
+
+        function disableForm() {
+            submitButton.disabled = true;
+            form.style.display = 'none';
+            cooldownMessage.style.display = 'block';
+        }
+
+        function enableForm() {
+            submitButton.disabled = false;
+            form.style.display = 'block';
+            cooldownMessage.style.display = 'none';
+        }
+
+        function startCooldown(seconds) {
+            let timer = seconds;
+
+            const interval = setInterval(() => {
+                const minutes = Math.floor(timer / 60);
+                const seconds = timer % 60;
+                cooldownTimer.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                timer--;
+
+                if (timer < 0) {
+                    clearInterval(interval);
+                    enableForm();
+                }
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
